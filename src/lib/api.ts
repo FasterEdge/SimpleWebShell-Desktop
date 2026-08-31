@@ -9,12 +9,23 @@ export class ShellApi {
     return fetch(url, { ...init, signal: AbortSignal.timeout(15000) })
   }
   async command(cmd: string, method: 'GET' | 'POST') {
-    const url = method === 'GET' ? `/get&cmd=${encodeURIComponent(cmd)}` : '/post'
     const response = method === 'GET'
       ? await this.request(`/get?cmd=${encodeURIComponent(cmd)}`)
-      : await this.request(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ cmd }) })
+      : await this.request('/post', { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ cmd }) })
     if (!response.ok) throw new Error(`HTTP ${response.status}`)
     return response.text()
+  }
+  async upload(file: File, targetPath?: string) {
+    const body = new FormData(); body.append('file', file)
+    if (targetPath) body.append('path', targetPath)
+    const response = await this.request('/file_send', { method: 'POST', body })
+    if (!response.ok) throw new Error(`HTTP ${response.status}`)
+    return response.text()
+  }
+  async download(remotePath: string) {
+    const response = await this.request(`/file_receive?path=${encodeURIComponent(remotePath)}`)
+    if (!response.ok) throw new Error(`HTTP ${response.status}`)
+    return response.blob()
   }
   async sessions() { return (await this.request('/session_list')).json() }
   async createSession() { return (await this.request('/session_create')).text() }

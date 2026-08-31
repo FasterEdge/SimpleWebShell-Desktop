@@ -13,6 +13,10 @@ const loading = ref(false)
 const sessions = ref<any[]>([])
 const detail = ref('')
 const useSession = ref(false)
+const uploadInput = ref<HTMLInputElement | null>(null)
+const uploadPath = ref('')
+const downloadPath = ref('')
+const fileStatus = ref('')
 
 const selected = computed(() => devices.value.find(d => d.id === selectedId.value))
 const api = computed(() => selected.value ? new ShellApi(selected.value) : null)
@@ -41,6 +45,23 @@ async function createSession() { if (!api.value) return; const id = await api.va
 async function chooseSession(id: string) { if (!selected.value) return; selected.value.session = id; useSession.value = true; await refresh() }
 async function showDetail(id: string) { if (api.value) detail.value = JSON.stringify(await api.value.sessionDetail(id), null, 2) }
 async function deleteSession(id: string) { if (api.value) { await api.value.deleteSession(id); if (selected.value?.session === id) selected.value.session = undefined; await refresh() } }
+async function uploadFile() {
+  const file = uploadInput.value?.files?.[0]
+  if (!api.value || !file) return error.value = '请选择要上传的文件'
+  loading.value = true; fileStatus.value = ''
+  try { fileStatus.value = await api.value.upload(file, uploadPath.value) }
+  catch (e) { fileStatus.value = e instanceof Error ? e.message : '上传失败' }
+  finally { loading.value = false }
+}
+async function downloadFile() {
+  if (!api.value || !downloadPath.value.trim()) return error.value = '请输入远程文件路径'
+  loading.value = true; fileStatus.value = ''
+  try {
+    const blob = await api.value.download(downloadPath.value.trim())
+    const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = downloadPath.value.split('/').pop() || 'download'; link.click(); URL.revokeObjectURL(link.href); fileStatus.value = '下载已开始'
+  } catch (e) { fileStatus.value = e instanceof Error ? e.message : '下载失败' }
+  finally { loading.value = false }
+}
 function toggleSession() { if (selected.value && !useSession.value) selected.value.session = undefined }
 onMounted(() => { if (selected.value) refresh() })
 </script>
@@ -53,6 +74,7 @@ onMounted(() => { if (selected.value) refresh() })
       <section class="content"><div class="panel overview"><div><span class="eyebrow">ACTIVE DEVICE</span><h2>{{ selected?.name || '未选择设备' }}</h2><p>{{ selected?.url || '添加一个 SimpleWebShell 服务开始管理' }}</p></div><div class="status" :class="{ online: selected?.online }"><i></i>{{ selected?.online ? '在线' : '未连接' }}</div><button v-if="selected" class="danger" @click="remove">删除设备</button></div>
         <div class="grid"><section class="panel command-panel"><div class="panel-title"><h2>命令终端</h2><label><input v-model="useSession" type="checkbox" @change="toggleSession" /> 使用 Session</label></div><div class="path">当前目录：{{ selected?.path || '—' }}</div><div class="command-row"><select v-model="method"><option>GET</option><option>POST</option></select><input v-model="command" @keyup.enter="run" placeholder="输入远程命令，例如 uname -a" /><button class="primary" :disabled="loading || !api" @click="run">执行</button></div><pre class="terminal">{{ output || '命令输出将显示在这里…' }}</pre><p v-if="error" class="error">{{ error }}</p></section>
           <section class="panel session-panel"><div class="panel-title"><h2>会话</h2><button class="small" :disabled="!api" @click="createSession">新建</button></div><div v-if="!sessions.length" class="empty">暂无远程会话</div><div v-for="session in sessions" :key="session.id || session" class="session"><div @click="chooseSession(session.id || session)"><strong>{{ session.id || session }}</strong><small>{{ session.path || '点击启用' }}</small></div><button @click="showDetail(session.id || session)">详情</button><button @click="deleteSession(session.id || session)">×</button></div></section></div>
+        <section class="panel files"><div class="panel-title"><h2>文件传输</h2><span>授权设备专用</span></div><div class="file-row"><input ref="uploadInput" type="file" /><input v-model="uploadPath" placeholder="上传目标路径（可选）" /><button class="small" :disabled="loading || !api" @click="uploadFile">上传</button></div><div class="file-row"><input v-model="downloadPath" placeholder="远程文件完整路径" /><button class="small" :disabled="loading || !api" @click="downloadFile">下载</button></div><p v-if="fileStatus" class="file-status">{{ fileStatus }}</p></section>
         <section v-if="detail" class="panel detail"><div class="panel-title"><h2>Session 详情</h2><button class="small" @click="detail = ''">关闭</button></div><pre>{{ detail }}</pre></section>
       </section>
     </section><footer>仅用于已授权的远程运维 · SimpleWebShell API · 默认请求超时 15 秒</footer>

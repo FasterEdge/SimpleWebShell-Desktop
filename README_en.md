@@ -16,6 +16,7 @@ Use it only with devices you own or are explicitly authorized to operate. The cl
 - Connection status and current working directory
 - GET / POST command execution
 - Session listing, creation, switching, details and deletion
+- File upload and download
 - 15-second request timeout and visible errors
 - Dark desktop operations UI optimized for a Tauri window
 

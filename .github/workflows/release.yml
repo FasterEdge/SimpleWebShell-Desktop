@@ -18,19 +18,19 @@ jobs:
         include:
           # macOS：universal 同时打包 x64 + arm64
           - platform: macos-latest
-            target: universal-apple-darwin
+            args: '--target universal-apple-darwin'
             rust-targets: aarch64-apple-darwin,x86_64-apple-darwin
           # Linux x64
           - platform: ubuntu-latest
-            target: x86_64-unknown-linux-gnu
+            args: '--target x86_64-unknown-linux-gnu'
             rust-targets: ''
           # Linux arm64（GitHub 原生 ARM runner）
           - platform: ubuntu-24.04-arm
-            target: aarch64-unknown-linux-gnu
+            args: '--target aarch64-unknown-linux-gnu'
             rust-targets: ''
-          # Windows x64
+          # Windows x64：只打 NSIS（WiX/MSI 对版本号有 patch<=65535 限制）
           - platform: windows-latest
-            target: x86_64-pc-windows-msvc
+            args: '--target x86_64-pc-windows-msvc --bundles nsis'
             rust-targets: ''
     steps:
     - uses: actions/checkout@v4
@@ -49,7 +49,7 @@ jobs:
       if: runner.os == 'Linux'
       run: |
         sudo apt-get update
-        sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+        sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf xdg-utils
     - name: '安装前端依赖'
       run: npm ci --no-audit --no-fund
     - name: '构建并发布到 Release'
@@ -62,4 +62,4 @@ jobs:
         releaseBody: '自动构建的跨平台桌面应用安装包（Windows / macOS / Linux）'
         releaseDraft: false
         prerelease: false
-        args: '--target ${{ matrix.target }}'
+        args: ${{ matrix.args }}

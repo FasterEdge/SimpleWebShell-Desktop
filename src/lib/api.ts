@@ -1,3 +1,8 @@
+// ─────────────────────────────────────────────────────────────
+// FasterEdge 开源项目
+// Github: https://github.com/FasterEdge
+// Gitee:  https://gitee.com/FasterEdge
+// ─────────────────────────────────────────────────────────────
 export interface Device { id: string; name: string; url: string; key: string; session?: string; online?: boolean; path?: string }
 
 export class ShellApi {

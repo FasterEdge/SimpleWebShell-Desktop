@@ -1,4 +1,9 @@
 <script setup lang="ts">
+// ─────────────────────────────────────────────────────────────
+// FasterEdge 开源项目
+// Github: https://github.com/FasterEdge
+// Gitee:  https://gitee.com/FasterEdge
+// ─────────────────────────────────────────────────────────────
 import { computed, onMounted, ref } from 'vue'
 import { ShellApi, type Device } from './lib/api'
 

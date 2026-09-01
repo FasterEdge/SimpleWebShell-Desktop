@@ -1,6 +1,16 @@
 {
   "name": "simplewebshell-desktop",
   "version": "1.0.20260901",
+  "author": "FasterEdge <fasteredge@mutantcat.org>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/FasterEdge/SimpleWebShell-Desktop.git"
+  },
+  "homepage": "https://github.com/FasterEdge/SimpleWebShell-Desktop",
+  "bugs": {
+    "url": "https://github.com/FasterEdge/SimpleWebShell-Desktop/issues",
+    "email": "fasteredge@mutantcat.org"
+  },
   "private": true,
   "type": "module",
   "scripts": {

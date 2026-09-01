@@ -2,7 +2,7 @@
 name = "simplewebshell-desktop"
 version = "1.0.20260901"
 description = "SimpleWebShell remote device management desktop client"
-authors = ["FasterEdge"]
+authors = ["FasterEdge <fasteredge@mutantcat.org>"]
 edition = "2021"
 
 [lib]

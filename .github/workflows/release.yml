@@ -1,0 +1,65 @@
+name: '跨平台 Release 打包'
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  publish-tauri:
+    name: '构建并发布 ${{ matrix.platform }}'
+    runs-on: ${{ matrix.platform }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # macOS：universal 同时打包 x64 + arm64
+          - platform: macos-latest
+            target: universal-apple-darwin
+            rust-targets: aarch64-apple-darwin,x86_64-apple-darwin
+          # Linux x64
+          - platform: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            rust-targets: ''
+          # Linux arm64（GitHub 原生 ARM runner）
+          - platform: ubuntu-24.04-arm
+            target: aarch64-unknown-linux-gnu
+            rust-targets: ''
+          # Windows x64
+          - platform: windows-latest
+            target: x86_64-pc-windows-msvc
+            rust-targets: ''
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 22
+        cache: npm
+        cache-dependency-path: package-lock.json
+    - uses: dtolnay/rust-toolchain@stable
+      with:
+        targets: ${{ matrix.rust-targets }}
+    - uses: swatinem/rust-cache@v2
+      with:
+        workspaces: './src-tauri -> target'
+    - name: '安装 Linux 系统依赖'
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+    - name: '安装前端依赖'
+      run: npm ci --no-audit --no-fund
+    - name: '构建并发布到 Release'
+      uses: tauri-apps/tauri-action@v0
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tagName: 'v__VERSION__'
+        releaseName: 'v__VERSION__'
+        releaseBody: '自动构建的跨平台桌面应用安装包（Windows / macOS / Linux）'
+        releaseDraft: false
+        prerelease: false
+        args: '--target ${{ matrix.target }}'

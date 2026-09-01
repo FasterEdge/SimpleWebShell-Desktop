@@ -4,3 +4,5 @@ dist/
 *.log
 src-tauri/target/
 .DS_Store
+src-tauri/gen/
+src-tauri/Cargo.lock

@@ -1,6 +1,6 @@
 [package]
 name = "simplewebshell-desktop"
-version = "0.1.0"
+version = "1.0.20260901"
 description = "SimpleWebShell remote device management desktop client"
 authors = ["FasterEdge"]
 edition = "2021"

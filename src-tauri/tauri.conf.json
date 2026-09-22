@@ -1,9 +1,9 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "SimpleWebShell Desktop",
-  "version": "1.0.20260901",
+  "version": "1.0.20260922",
   "identifier": "com.fasteredge.simplewebshell.desktop",
   "build": { "beforeDevCommand": "npm run dev", "devUrl": "http://localhost:1420", "beforeBuildCommand": "npm run build", "frontendDist": "../dist" },
   "app": { "windows": [{ "title": "SimpleWebShell Desktop", "width": 1320, "height": 860, "minWidth": 1050, "minHeight": 700 }], "security": { "csp": "default-src 'self'; script-src 'self' http://localhost:1420; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' http://* https://* http://localhost:1420 ws://localhost:1420; font-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'" } },
-  "bundle": { "active": true, "targets": "all", "icon": ["icons/32x32.png", "icons/128x128.png", "icons/128x128@2x.png", "icons/icon.icns", "icons/icon.ico"] }
+  "bundle": { "active": true, "targets": ["nsis", "dmg", "appimage"], "icon": ["icons/32x32.png", "icons/128x128.png", "icons/128x128@2x.png", "icons/icon.icns", "icons/icon.ico"], "macOS": { "signingIdentity": "-" }, "linux": { "appimage": { "bundleMediaFramework": true } } }
 }

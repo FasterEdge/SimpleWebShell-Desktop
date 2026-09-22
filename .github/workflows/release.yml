@@ -115,7 +115,7 @@ jobs:
         run: npm ci --no-audit --no-fund
 
       - name: '构建安装包并上传到 Release'
-        uses: tauri-apps/tauri-action@v0
+        uses: tauri-apps/tauri-action@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # ad-hoc 签名：不需要 Apple 开发者证书，dmg 可正常分发（首次打开需右键 → 打开）

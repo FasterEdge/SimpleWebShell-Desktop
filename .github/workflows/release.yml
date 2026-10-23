@@ -164,7 +164,7 @@ jobs:
         run: npm run tauri build -- ${{ matrix.args }}
 
       - name: '上传安装包工件（供 SHA256 汇总）'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: 'tauri-${{ matrix.platform }}'
           path: |

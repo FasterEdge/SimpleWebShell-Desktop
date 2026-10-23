@@ -4,6 +4,7 @@ name: '跨平台 Release 打包'
 #   1. 用户在 GitHub 上「发布」一个版本（Release published / 从草稿发布）——主路径；
 #   2. 推送 v* 标签；
 #   3. 手动触发（可指定标签）。
+#   4. main/master 分支推送或 PR：只构建、不上传，用于合并前校验。
 on:
   workflow_dispatch:
     inputs:
@@ -14,8 +15,13 @@ on:
   push:
     tags:
       - 'v*'
+    branches:
+      - main
+      - master
   release:
     types: [published, released]
+  pull_request:
+    branches: [main, master]
 
 permissions:
   contents: write
@@ -75,6 +81,10 @@ jobs:
           REF_NAME: ${{ github.ref_name }}
         run: |
           set -euo pipefail
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            echo 'PR 校验：跳过发布标签一致性检查。'
+            exit 0
+          fi
           version="$(node -p "require('./src-tauri/tauri.conf.json').version")"
           tag="${INPUT_TAG:-}"
           if [ "$EVENT_NAME" = "workflow_dispatch" ] && [ -z "$tag" ]; then
@@ -115,6 +125,7 @@ jobs:
         run: npm ci --no-audit --no-fund
 
       - name: '构建安装包并上传到 Release'
+        if: github.event_name == 'release' || github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/'))
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -146,6 +157,11 @@ jobs:
           releaseId: ${{ github.event.release.id }}
           args: ${{ matrix.args }}
           retryAttempts: 3
+
+      - name: '构建安装包（PR / 分支校验，不上传 Release）'
+        if: github.event_name != 'release' && github.event_name != 'workflow_dispatch' && !(github.event_name == 'push' && startsWith(github.ref, 'refs/tags/'))
+        shell: bash
+        run: npm run tauri build -- ${{ matrix.args }}
 
       - name: '上传安装包工件（供 SHA256 汇总）'
         uses: actions/upload-artifact@v4
@@ -190,7 +206,7 @@ jobs:
             | sort -z | xargs -0 -r sha1sum > checksums-sha1.txt
           cat SHA256SUMS.txt checksums-md5.txt checksums-sha1.txt
       - name: '上传到 Release'
-        if: github.event_name != 'workflow_dispatch' || github.event.inputs.tag != ''
+        if: github.event_name == 'release' || (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) || (github.event_name == 'workflow_dispatch' && github.event.inputs.tag != '')
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.event.inputs.tag || github.event.release.tag_name || github.ref_name }}

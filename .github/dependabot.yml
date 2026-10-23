@@ -9,6 +9,13 @@ updates:
     labels:
       - dependencies
       - security 
+    # TypeScript 7 是原生（Go）移植版，不再导出 "./lib/tsc"，
+    # 而 vue-tsc 仍按该路径解析编译器，主版本升级会直接让前端构建失败。
+    # 在 vue-tsc 支持 TS 7 之前，只接受 6.x 的 minor/patch。
+    ignore:
+      - dependency-name: typescript
+        update-types:
+          - version-update:semver-major
   - package-ecosystem: github-actions
     directory: /
     schedule:
